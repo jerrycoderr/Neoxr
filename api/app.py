@@ -69,13 +69,6 @@ def process_image(img_bytes: bytes):
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
-# --------------------------
-# POST Upload
-# --------------------------
-@app.post("/upload")
-async def upload_file(file: UploadFile = File(...)):
-    img_bytes = await file.read()
-    return process_image(img_bytes)
 
 # --------------------------
 # GET URL Method (YOUR NEED ✅)
