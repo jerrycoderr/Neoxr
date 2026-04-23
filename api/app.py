@@ -1,6 +1,6 @@
 import requests
 import json
-from fastapi import FastAPI, UploadFile, File, Query
+from fastapi import FastAPI, Query
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from rembg import remove
