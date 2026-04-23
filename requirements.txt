@@ -1,0 +1,5 @@
+fastapi
+requests
+rembg
+pillow
+onnxruntime
