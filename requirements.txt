@@ -3,4 +3,3 @@ requests
 rembg
 pillow
 onnxruntime
-python-multipart
