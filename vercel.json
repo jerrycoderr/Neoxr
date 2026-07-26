@@ -2,14 +2,14 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/imdb.py",
+      "src": "api/app.py",
       "use": "@vercel/python"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "api/imdb.py"
+      "dest": "api/app.py"
     }
   ]
 }
