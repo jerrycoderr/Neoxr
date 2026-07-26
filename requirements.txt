@@ -1,5 +1,1 @@
-fastapi
-requests
-rembg
-pillow
-onnxruntime
+cinemagoer
