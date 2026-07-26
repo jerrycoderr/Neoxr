@@ -1,2 +1,3 @@
-git+https://github.com/ritheshrkrm/cinemagoer.git
+requests
+git+https://github.com/ritheshrkrm/cinemagoer
 Flask
