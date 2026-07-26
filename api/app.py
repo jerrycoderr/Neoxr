@@ -1,8 +1,11 @@
+import os
+import requests
 from flask import Flask, request, jsonify
-from imdb import Cinemagoer
 
 app = Flask(__name__)
-ia = Cinemagoer()
+
+# Replace with your free OMDb API key (or set OMDB_API_KEY environment variable in Vercel)
+OMDB_API_KEY = os.environ.get("c7a99ffc", "c7a99ffc)
 
 @app.route("/", methods=["GET"])
 def imdb_search():
@@ -15,32 +18,37 @@ def imdb_search():
         }), 400
 
     try:
-        results = ia.search_movie(query)
+        # Search movie via OMDb
+        url = f"http://www.omdbapi.com/?apikey={OMDB_API_KEY}&s={query}"
+        response = requests.get(url).json()
 
-        if not results:
+        if response.get("Response") == "False":
             return jsonify({
                 "status": False,
-                "message": "No results found"
+                "message": response.get("Error", "No results found")
             }), 404
 
-        movie = results[0]
-        ia.update(movie)
+        # Get first result details
+        first_movie_id = response["Search"][0]["imdbID"]
+        detail_url = f"http://www.omdbapi.com/?apikey={OMDB_API_KEY}&i={first_movie_id}&plot=full"
+        movie = requests.get(detail_url).json()
 
         data = {
             "status": True,
-            "title": movie.get("title"),
-            "year": movie.get("year"),
-            "imdb_id": f"tt{movie.movieID}",
-            "kind": movie.get("kind"),
-            "rating": movie.get("rating"),
-            "genres": movie.get("genres"),
-            "plot": movie.get("plot outline"),
-            "runtime": movie.get("runtimes"),
-            "languages": movie.get("languages"),
-            "countries": movie.get("countries"),
-            "cast": [x["name"] for x in movie.get("cast", [])[:10]],
-            "directors": [x["name"] for x in movie.get("director", [])],
-            "writers": [x["name"] for x in movie.get("writer", [])],
+            "title": movie.get("Title"),
+            "year": movie.get("Year"),
+            "imdb_id": movie.get("imdbID"),
+            "kind": movie.get("Type"),
+            "rating": movie.get("imdbRating"),
+            "genres": movie.get("Genre", "").split(", ") if movie.get("Genre") else [],
+            "plot": movie.get("Plot"),
+            "runtime": movie.get("Runtime"),
+            "languages": movie.get("Language"),
+            "countries": movie.get("Country"),
+            "cast": movie.get("Actors", "").split(", ") if movie.get("Actors") else [],
+            "directors": movie.get("Director", "").split(", ") if movie.get("Director") else [],
+            "writers": movie.get("Writer", "").split(", ") if movie.get("Writer") else [],
+            "poster": movie.get("Poster")
         }
 
         return jsonify(data)
