@@ -50,5 +50,3 @@ def imdb_search():
             "status": False,
             "error": str(e)
         }), 500
-
-app = app
