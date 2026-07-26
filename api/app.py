@@ -1,30 +1,27 @@
+from flask import Flask, request, jsonify
 from imdb import Cinemagoer
 
+app = Flask(__name__)
 ia = Cinemagoer()
 
-def handler(request):
+@app.route("/", methods=["GET"])
+def imdb_search():
     query = request.args.get("query")
 
     if not query:
-        return {
-            "statusCode": 400,
-            "body": {
-                "status": False,
-                "message": "Missing query parameter"
-            }
-        }
+        return jsonify({
+            "status": False,
+            "message": "Missing query parameter"
+        }), 400
 
     try:
         results = ia.search_movie(query)
 
         if not results:
-            return {
-                "statusCode": 404,
-                "body": {
-                    "status": False,
-                    "message": "No results found"
-                }
-            }
+            return jsonify({
+                "status": False,
+                "message": "No results found"
+            }), 404
 
         movie = results[0]
         ia.update(movie)
@@ -38,20 +35,20 @@ def handler(request):
             "rating": movie.get("rating"),
             "genres": movie.get("genres"),
             "plot": movie.get("plot outline"),
-            "cast": [x["name"] for x in movie.get("cast", [])[:5]],
+            "runtime": movie.get("runtimes"),
+            "languages": movie.get("languages"),
+            "countries": movie.get("countries"),
+            "cast": [x["name"] for x in movie.get("cast", [])[:10]],
             "directors": [x["name"] for x in movie.get("director", [])],
+            "writers": [x["name"] for x in movie.get("writer", [])],
         }
 
-        return {
-            "statusCode": 200,
-            "body": data
-        }
+        return jsonify(data)
 
     except Exception as e:
-        return {
-            "statusCode": 500,
-            "body": {
-                "status": False,
-                "error": str(e)
-            }
-        }
+        return jsonify({
+            "status": False,
+            "error": str(e)
+        }), 500
+
+app = app
