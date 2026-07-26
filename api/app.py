@@ -4,11 +4,11 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-# Replace with your free OMDb API key (or set OMDB_API_KEY environment variable in Vercel)
-OMDB_API_KEY = "c7a99ffc"
+# Replace with your TMDB API Key (v3)
+TMDB_API_KEY = "7dda7d9a179f825b2e92e75ed67fa185"
 
 @app.route("/", methods=["GET"])
-def imdb_search():
+def search_movie():
     query = request.args.get("query")
 
     if not query:
@@ -18,37 +18,49 @@ def imdb_search():
         }), 400
 
     try:
-        # Search movie via OMDb
-        url = f"http://www.omdbapi.com/?apikey={OMDB_API_KEY}&s={query}"
-        response = requests.get(url).json()
+        # Step 1: Search movie on TMDB
+        search_url = f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_API_KEY}&query={query}"
+        search_res = requests.get(search_url).json()
 
-        if response.get("Response") == "False":
+        results = search_res.get("results", [])
+        if not results:
             return jsonify({
                 "status": False,
-                "message": response.get("Error", "No results found")
+                "message": "No results found"
             }), 404
 
-        # Get first result details
-        first_movie_id = response["Search"][0]["imdbID"]
-        detail_url = f"http://www.omdbapi.com/?apikey={OMDB_API_KEY}&i={first_movie_id}&plot=full"
+        first_movie = results[0]
+        movie_id = first_movie["id"]
+
+        # Step 2: Fetch detailed info + IMDb ID + Credits (Cast/Director)
+        detail_url = f"https://api.themoviedb.org/3/movie/{movie_id}?api_key={TMDB_API_KEY}&append_to_response=credits,external_ids"
         movie = requests.get(detail_url).json()
+
+        # Step 3: Poster image URL formatting
+        poster_path = movie.get("poster_path")
+        poster_url = f"https://image.tmdb.org/t/p/w500{poster_path}" if poster_path else None
+
+        credits = movie.get("credits", {})
+        cast = [member["name"] for member in credits.get("cast", [])[:10]]
+        directors = [member["name"] for member in credits.get("crew", []) if member.get("job") == "Director"]
+        writers = [member["name"] for member in credits.get("crew", []) if member.get("job") in ["Writer", "Screenplay"]]
 
         data = {
             "status": True,
-            "title": movie.get("Title"),
-            "year": movie.get("Year"),
-            "imdb_id": movie.get("imdbID"),
-            "kind": movie.get("Type"),
-            "rating": movie.get("imdbRating"),
-            "genres": movie.get("Genre", "").split(", ") if movie.get("Genre") else [],
-            "plot": movie.get("Plot"),
-            "runtime": movie.get("Runtime"),
-            "languages": movie.get("Language"),
-            "countries": movie.get("Country"),
-            "cast": movie.get("Actors", "").split(", ") if movie.get("Actors") else [],
-            "directors": movie.get("Director", "").split(", ") if movie.get("Director") else [],
-            "writers": movie.get("Writer", "").split(", ") if movie.get("Writer") else [],
-            "poster": movie.get("Poster")
+            "title": movie.get("title"),
+            "year": movie.get("release_date", "").split("-")[0] if movie.get("release_date") else None,
+            "imdb_id": movie.get("external_ids", {}).get("imdb_id"),
+            "kind": "movie",
+            "rating": str(round(movie.get("vote_average", 0), 1)),
+            "genres": [g["name"] for g in movie.get("genres", [])],
+            "plot": movie.get("overview"),
+            "runtime": f"{movie.get('runtime')} mins" if movie.get("runtime") else None,
+            "languages": [l["english_name"] for l in movie.get("spoken_languages", [])],
+            "countries": [c["name"] for c in movie.get("origin_country", [])],
+            "poster": poster_url,
+            "cast": cast,
+            "directors": directors,
+            "writers": writers
         }
 
         return jsonify(data)
