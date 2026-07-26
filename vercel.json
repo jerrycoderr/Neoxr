@@ -1,15 +1,13 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "api/app.py",
-      "use": "@vercel/python"
+  "functions": {
+    "api/*.py": {
+      "runtime": "python3.12"
     }
-  ],
+  },
   "routes": [
     {
-      "src": "/(.*)",
-      "dest": "api/app.py"
+      "src": "/api/imdb",
+      "dest": "/api/imdb.py"
     }
   ]
 }
