@@ -41,9 +41,9 @@ def search_movie():
         poster_url = f"https://image.tmdb.org/t/p/w500{poster_path}" if poster_path else None
 
         credits = movie.get("credits", {})
-        cast = [member["name"] for member in credits.get("cast", [])[:10]]
-        directors = [member["name"] for member in credits.get("crew", []) if member.get("job") == "Director"]
-        writers = [member["name"] for member in credits.get("crew", []) if member.get("job") in ["Writer", "Screenplay"]]
+        cast = [member.get("name") for member in credits.get("cast", [])[:10] if member.get("name")]
+        directors = [member.get("name") for member in credits.get("crew", []) if member.get("job") == "Director"]
+        writers = [member.get("name") for member in credits.get("crew", []) if member.get("job") in ["Writer", "Screenplay"]]
 
         data = {
             "status": True,
@@ -52,11 +52,11 @@ def search_movie():
             "imdb_id": movie.get("external_ids", {}).get("imdb_id"),
             "kind": "movie",
             "rating": str(round(movie.get("vote_average", 0), 1)),
-            "genres": [g["name"] for g in movie.get("genres", [])],
+            "genres": [g.get("name") for g in movie.get("genres", []) if g.get("name")],
             "plot": movie.get("overview"),
             "runtime": f"{movie.get('runtime')} mins" if movie.get("runtime") else None,
-            "languages": [l["english_name"] for l in movie.get("spoken_languages", [])],
-            "countries": [c["name"] for c in movie.get("origin_country", [])],
+            "languages": [l.get("english_name") for l in movie.get("spoken_languages", []) if l.get("english_name")],
+            "countries": [c.get("name") for c in movie.get("production_countries", []) if c.get("name")],
             "poster": poster_url,
             "cast": cast,
             "directors": directors,
