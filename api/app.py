@@ -5,7 +5,7 @@ from flask import Flask, request, jsonify
 app = Flask(__name__)
 
 # Replace with your free OMDb API key (or set OMDB_API_KEY environment variable in Vercel)
-OMDB_API_KEY = os.environ.get("c7a99ffc", "c7a99ffc)
+OMDB_API_KEY = "c7a99ffc"
 
 @app.route("/", methods=["GET"])
 def imdb_search():
